@@ -30,12 +30,24 @@ async def websocket_endpoint(websocket: WebSocket):
                     if tracker_id:
                         tracker_data = await get_combined_tracker_data(tracker_id)
                         if tracker_data:
+                            # Include geolocation data in the broadcast
+                            geolocation = {
+                                "Lat": change["fullDocument"].get("Lat"),
+                                "Lng": change["fullDocument"].get("Lng"),
+                            }
                             print(f"Broadcasting updated tracker data: {tracker_data}")  # Log the broadcast
-                            await manager.broadcast(json_util.dumps({"operationType": "insert", "data": tracker_data}))
+                            await manager.broadcast(json_util.dumps({
+                                "operationType": "insert",
+                                "data": tracker_data,
+                                "geolocation": geolocation
+                            }))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        print("WebSocket client disconnected.")
     except Exception as e:
         print(f"Error in WebSocket endpoint: {e}")
+    finally:
+        manager.disconnect(websocket)  # Ensure the connection is removed in all cases
 
 @app.on_event("startup")
 async def startup_event():

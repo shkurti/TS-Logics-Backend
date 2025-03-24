@@ -46,3 +46,15 @@ async def get_trackers():
         if combined_data:
             trackers.append(combined_data)
     return trackers
+
+@router.get("/tracker_data/{tracker_id}")
+async def get_tracker_data(tracker_id: str):
+    try:
+        # Fetch the combined tracker data
+        tracker_data = await get_combined_tracker_data(tracker_id)
+        if not tracker_data:
+            raise HTTPException(status_code=404, detail=f"Tracker with ID {tracker_id} not found.")
+        return tracker_data
+    except Exception as e:
+        print(f"Error fetching tracker data for ID {tracker_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

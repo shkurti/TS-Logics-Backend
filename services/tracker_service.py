@@ -27,6 +27,21 @@ async def get_combined_tracker_data(tracker_id: str):
             print(f"Shipment data for tracker ID {tracker_id_int} not found in shipment_data_collection.")
             return None
 
+        # Fetch historical data for temperature, battery level, and geolocation
+        historical_data = []
+        async for record in shipment_data_collection.find(
+            {"trackerID": tracker_id_int},
+            sort=[("DT", 1)]  # Sort by DT (timestamp) in ascending order
+        ):
+            if record.get("Lat") is not None and record.get("Lng") is not None:
+                historical_data.append({
+                    "timestamp": record.get("DT", "N/A"),
+                    "latitude": record.get("Lat"),
+                    "longitude": record.get("Lng"),
+                    "temperature": record.get("Temp", "N/A"),
+                    "battery": record.get("Batt", "N/A")
+                })
+
         # Combine data
         combined_data = {
             "tracker_id": tracker["tracker_id"],
@@ -36,6 +51,7 @@ async def get_combined_tracker_data(tracker_id: str):
             "batteryLevel": shipment_data.get("Batt", "N/A"),
             "lastConnected": shipment_data.get("DT", "N/A"),
             "location": f"{shipment_data.get('Lat', 'N/A')}, {shipment_data.get('Lng', 'N/A')}",
+            "historical_data": historical_data  # Add historical data with geolocation
         }
         print(f"Combined data for tracker ID {tracker_id}: {combined_data}")
         return combined_data
