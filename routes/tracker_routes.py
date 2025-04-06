@@ -58,3 +58,18 @@ async def get_tracker_data(tracker_id: str):
     except Exception as e:
         print(f"Error fetching tracker data for ID {tracker_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.delete("/delete_tracker/{tracker_id}")
+async def delete_tracker(tracker_id: str):
+    try:
+        # Attempt to delete the tracker from the database
+        result = await registered_trackers_collection.delete_one({"tracker_id": tracker_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail=f"Tracker with ID {tracker_id} not found.")
+        
+        # Broadcast the deletion to WebSocket clients
+        await manager.broadcast(json_util.dumps({"operationType": "delete", "tracker_id": tracker_id}))
+        return {"message": f"Tracker with ID {tracker_id} deleted successfully."}
+    except Exception as e:
+        print(f"Error deleting tracker with ID {tracker_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
