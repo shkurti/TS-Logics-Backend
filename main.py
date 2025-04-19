@@ -10,7 +10,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://frontend-ts-860909b3c437.herokuapp.com"],  # Ensure this matches your frontend's URL
+    # allow_origins=["https://frontend-ts-860909b3c437.herokuapp.com"],  # Ensure this matches your frontend's URL
+    allow_origins=["https://ui-ts-logic-2ba3bbfcc572.herokuapp.com"],  # For development purposes, allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
