@@ -39,7 +39,8 @@ async def get_combined_tracker_data(tracker_id: str):
                     "latitude": record.get("Lat"),
                     "longitude": record.get("Lng"),
                     "temperature": record.get("Temp", "N/A"),
-                    "battery": record.get("Batt", "N/A")
+                    "battery": record.get("Batt", "N/A"),
+                    "humidity": record.get("Hum", "N/A")
                 })
 
         # Combine data
