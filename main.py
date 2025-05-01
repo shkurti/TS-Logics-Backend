@@ -1,17 +1,16 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from bson import json_util  # Added missing import for json_util
+from bson import json_util
 from websocket_manager import manager
 from database import shipment_data_collection
 from routes.tracker_routes import router
-from services.tracker_service import get_combined_tracker_data  # Added missing import for get_combined_tracker_data
+from services.tracker_service import get_combined_tracker_data
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=["https://frontend-ts-860909b3c437.herokuapp.com"],  # Ensure this matches your frontend's URL
-    allow_origins=["https://ui-ts-logic-2ba3bbfcc572.herokuapp.com"],  # For development purposes, allow all origins
+    allow_origins=["https://ui-ts-logic-2ba3bbfcc572.herokuapp.com"],  # Ensure this matches your frontend's URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,27 +28,19 @@ async def websocket_endpoint(websocket: WebSocket):
                 if change["operationType"] == "insert":
                     tracker_id = change["fullDocument"].get("trackerID")
                     if tracker_id:
-                        # Extract only the new data from the inserted document
-                        new_data = change["fullDocument"].get("data", [])
-                        latest_record = new_data[-1] if new_data else None  # Get the latest record
-                        geolocation = {
-                            "Lat": latest_record.get("Lat") if latest_record else None,
-                            "Lng": latest_record.get("Lng") if latest_record else None,
-                        } if latest_record else {}
-
-                        # Debug logs for verification
-                        print(f"Tracker ID: {tracker_id}")
-                        print(f"New Data: {new_data}")
-                        print(f"Latest Record: {latest_record}")
-                        print(f"Geolocation: {geolocation}")
-
-                        # Broadcast the data
-                        await manager.broadcast(json_util.dumps({
-                            "operationType": "insert",
-                            "tracker_id": tracker_id,
-                            "new_data": [latest_record] if latest_record else [],
-                            "geolocation": geolocation
-                        }))
+                        tracker_data = await get_combined_tracker_data(tracker_id)
+                        if tracker_data:
+                            # Include geolocation data in the broadcast
+                            geolocation = {
+                                "Lat": change["fullDocument"].get("Lat"),
+                                "Lng": change["fullDocument"].get("Lng"),
+                            }
+                            print(f"Broadcasting updated tracker data: {tracker_data}")  # Log the broadcast
+                            await manager.broadcast(json_util.dumps({
+                                "operationType": "insert",
+                                "data": tracker_data,
+                                "geolocation": geolocation
+                            }))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         print("WebSocket client disconnected.")
