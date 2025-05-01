@@ -30,15 +30,18 @@ async def websocket_endpoint(websocket: WebSocket):
                     if tracker_id:
                         tracker_data = await get_combined_tracker_data(tracker_id)
                         if tracker_data:
-                            # Include geolocation data in the broadcast
+                            # Extract only the latest record from the data array
+                            new_record = tracker_data["data"][-1] if tracker_data["data"] else None
                             geolocation = {
-                                "Lat": change["fullDocument"].get("Lat"),
-                                "Lng": change["fullDocument"].get("Lng"),
-                            }
-                            print(f"Broadcasting updated tracker data: {tracker_data}")  # Log the broadcast
+                                "Lat": new_record.get("latitude") if new_record else None,
+                                "Lng": new_record.get("longitude") if new_record else None,
+                            } if new_record else {}
+
+                            print(f"Broadcasting new record for tracker ID {tracker_id}: {new_record}")  # Log the broadcast
                             await manager.broadcast(json_util.dumps({
                                 "operationType": "insert",
-                                "data": tracker_data,
+                                "tracker_id": tracker_id,
+                                "new_record": new_record,
                                 "geolocation": geolocation
                             }))
     except WebSocketDisconnect:
