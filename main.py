@@ -29,19 +29,19 @@ async def websocket_endpoint(websocket: WebSocket):
                 if change["operationType"] == "insert":
                     tracker_id = change["fullDocument"].get("trackerID")
                     if tracker_id:
-                        tracker_data = await get_combined_tracker_data(tracker_id)
-                        if tracker_data:
-                            # Include geolocation data in the broadcast
-                            geolocation = {
-                                "Lat": change["fullDocument"].get("Lat"),
-                                "Lng": change["fullDocument"].get("Lng"),
-                            }
-                            print(f"Broadcasting updated tracker data: {tracker_data}")  # Log the broadcast
-                            await manager.broadcast(json_util.dumps({
-                                "operationType": "insert",
-                                "data": tracker_data,
-                                "geolocation": geolocation
-                            }))
+                        # Extract only the new data from the inserted document
+                        new_data = change["fullDocument"].get("data", [])
+                        geolocation = {
+                            "Lat": change["fullDocument"].get("Lat"),
+                            "Lng": change["fullDocument"].get("Lng"),
+                        }
+                        print(f"Broadcasting new data for tracker ID {tracker_id}: {new_data}")  # Log the broadcast
+                        await manager.broadcast(json_util.dumps({
+                            "operationType": "insert",
+                            "tracker_id": tracker_id,
+                            "new_data": new_data,
+                            "geolocation": geolocation
+                        }))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         print("WebSocket client disconnected.")
