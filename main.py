@@ -37,7 +37,13 @@ async def websocket_endpoint(websocket: WebSocket):
                             "Lng": latest_record.get("Lng") if latest_record else None,
                         } if latest_record else {}
 
-                        print(f"Broadcasting new data for tracker ID {tracker_id}: {latest_record}")  # Log the broadcast
+                        # Debug logs for verification
+                        print(f"Tracker ID: {tracker_id}")
+                        print(f"New Data: {new_data}")
+                        print(f"Latest Record: {latest_record}")
+                        print(f"Geolocation: {geolocation}")
+
+                        # Broadcast the data
                         await manager.broadcast(json_util.dumps({
                             "operationType": "insert",
                             "tracker_id": tracker_id,
