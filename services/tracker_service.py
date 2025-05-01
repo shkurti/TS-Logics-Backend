@@ -18,28 +18,29 @@ async def get_combined_tracker_data(tracker_id: str):
             print(f"Tracker ID {tracker_id} is not a valid integer.")
             return None
 
-        # Fetch the latest tracker data from Shipment_Data
-        shipment_data = await shipment_data_collection.find_one(
-            {"trackerID": tracker_id_int},
-            sort=[("DT", -1)]  # Sort by DT (timestamp) in descending order
-        )
-        if not shipment_data:
-            print(f"Shipment data for tracker ID {tracker_id_int} not found in shipment_data_collection.")
+        # Fetch all documents for the tracker from Shipment_Data
+        shipment_documents = []
+        async for document in shipment_data_collection.find({"trackerID": tracker_id_int}):
+            shipment_documents.append(document)
+
+        if not shipment_documents:
+            print(f"No shipment data found for tracker ID {tracker_id_int}.")
             return None
 
-        # Process the nested 'data' array in the shipment_data document
-        nested_data = shipment_data.get("data", [])
+        # Process all documents to extract nested 'data' arrays
         historical_data = []
-        for record in nested_data:
-            if record.get("Lat") is not None and record.get("Lng") is not None:
-                historical_data.append({
-                    "timestamp": record.get("DT", "N/A"),
-                    "latitude": record.get("Lat"),
-                    "longitude": record.get("Lng"),
-                    "temperature": record.get("Temp", "N/A"),
-                    "humidity": record.get("Hum", "N/A"),
-                    "speed": record.get("Speed", "N/A")
-                })
+        for shipment_data in shipment_documents:
+            nested_data = shipment_data.get("data", [])
+            for record in nested_data:
+                if record.get("Lat") is not None and record.get("Lng") is not None:
+                    historical_data.append({
+                        "timestamp": record.get("DT", "N/A"),
+                        "latitude": record.get("Lat"),
+                        "longitude": record.get("Lng"),
+                        "temperature": record.get("Temp", "N/A"),
+                        "humidity": record.get("Hum", "N/A"),
+                        "speed": record.get("Speed", "N/A")
+                    })
 
         # Combine data
         combined_data = {
@@ -47,9 +48,9 @@ async def get_combined_tracker_data(tracker_id: str):
             "tracker_name": tracker["tracker_name"],
             "device_type": tracker["device_type"],
             "model_number": tracker["model_number"],
-            "batteryLevel": shipment_data.get("Batt", "N/A"),
-            "lastConnected": shipment_data.get("DT", "N/A"),
-            "location": f"{shipment_data.get('Lat', 'N/A')}, {shipment_data.get('Lng', 'N/A')}",
+            "batteryLevel": shipment_documents[-1].get("Batt", "N/A"),  # Use the latest document for battery level
+            "lastConnected": shipment_documents[-1].get("DT", "N/A"),  # Use the latest document for last connected time
+            "location": f"{shipment_documents[-1].get('Lat', 'N/A')}, {shipment_documents[-1].get('Lng', 'N/A')}",  # Use the latest document for location
             "data": historical_data  # Add processed nested data
         }
         print(f"Combined data for tracker ID {tracker_id}: {combined_data}")
