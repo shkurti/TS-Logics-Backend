@@ -26,7 +26,7 @@ async def websocket_endpoint(websocket: WebSocket):
             async for change in stream:
                 print(f"Change detected in Shipment_Data: {change}")  # Log the change
                 if change["operationType"] == "insert":
-                    tracker_id = change["fullDocument"].get("trackerID")
+                    tracker_id = str(change["fullDocument"].get("trackerID"))  # Ensure tracker_id is a string
                     if tracker_id:
                         tracker_data = await get_combined_tracker_data(tracker_id)
                         if tracker_data:
@@ -40,7 +40,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             print(f"Broadcasting new record for tracker ID {tracker_id}: {new_record}")  # Log the broadcast
                             await manager.broadcast(json_util.dumps({
                                 "operationType": "insert",
-                                "tracker_id": tracker_id,
+                                "tracker_id": tracker_id,  # Ensure tracker_id is a string
                                 "new_record": new_record,
                                 "geolocation": geolocation
                             }))
