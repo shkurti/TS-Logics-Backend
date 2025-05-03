@@ -2,7 +2,7 @@ from database import registered_trackers_collection, shipment_data_collection
 
 async def get_combined_tracker_data(tracker_id: str):
     try:
-        # Convert tracker_id to a string for querying both collections
+        # Convert tracker_id to a string for querying registered_trackers_collection
         tracker_id_str = str(tracker_id)
 
         # Fetch tracker details from registered_trackers
@@ -11,13 +11,20 @@ async def get_combined_tracker_data(tracker_id: str):
             print(f"Tracker with ID {tracker_id} not found in registered_trackers_collection.")
             return None
 
+        # Convert tracker_id to an integer for querying Shipment_Data
+        try:
+            tracker_id_int = int(tracker_id)
+        except ValueError:
+            print(f"Tracker ID {tracker_id} is not a valid integer.")
+            return None
+
         # Fetch all documents for the tracker from Shipment_Data
         shipment_documents = []
-        async for document in shipment_data_collection.find({"trackerID": tracker_id_str}):  # Use string format
+        async for document in shipment_data_collection.find({"trackerID": tracker_id_int}):
             shipment_documents.append(document)
 
         if not shipment_documents:
-            print(f"No shipment data found for tracker ID {tracker_id_str}.")
+            print(f"No shipment data found for tracker ID {tracker_id_int}.")
             return None
 
         # Process all documents to extract nested 'data' arrays
