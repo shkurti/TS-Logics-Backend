@@ -30,20 +30,20 @@ async def websocket_endpoint(websocket: WebSocket):
                     if tracker_id:
                         tracker_data = await get_combined_tracker_data(tracker_id)
                         if tracker_data:
-                            # Extract only the latest record from the data array
-                            new_record = tracker_data["data"][-1] if tracker_data["data"] else None
-                            geolocation = {
-                                "Lat": new_record.get("latitude") if new_record else None,
-                                "Lng": new_record.get("longitude") if new_record else None,
-                            } if new_record else {}
+                            # Iterate over all records in the data array
+                            for record in tracker_data["data"]:
+                                geolocation = {
+                                    "Lat": record.get("latitude"),
+                                    "Lng": record.get("longitude"),
+                                } if record else {}
 
-                            print(f"Broadcasting new record for tracker ID {tracker_id}: {new_record}")  # Log the broadcast
-                            await manager.broadcast(json_util.dumps({
-                                "operationType": "insert",
-                                "tracker_id": tracker_id,
-                                "new_record": new_record,
-                                "geolocation": geolocation
-                            }))
+                                print(f"Broadcasting record for tracker ID {tracker_id}: {record}")  # Log the broadcast
+                                await manager.broadcast(json_util.dumps({
+                                    "operationType": "insert",
+                                    "tracker_id": tracker_id,
+                                    "new_record": record,
+                                    "geolocation": geolocation
+                                }))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         print("WebSocket client disconnected.")
