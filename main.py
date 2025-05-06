@@ -31,7 +31,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         new_record = change["fullDocument"]
                         data_array = new_record.get("data", [])
                         battery = new_record.get("Batt")  # Extract battery level
-                        timestamp = data_array[0].get("DT") if data_array else None  # Get timestamp from the first object
 
                         # Broadcast each record in the data array
                         for record in data_array:
