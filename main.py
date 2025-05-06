@@ -47,8 +47,8 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "tracker_id": tracker_id,
                                 "new_record": {
                                     **record,
-                                    "battery": battery,
-                                    "timestamp": timestamp,
+                                    "battery": battery,  # Include battery level
+                                    "timestamp": record.get("DT"),  # Use the record's timestamp
                                 },
                                 "geolocation": geolocation
                             }))
