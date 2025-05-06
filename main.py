@@ -28,29 +28,22 @@ async def websocket_endpoint(websocket: WebSocket):
                 if change["operationType"] == "insert":
                     tracker_id = change["fullDocument"].get("trackerID")
                     if tracker_id:
-                        new_record = change["fullDocument"]
-                        data_array = new_record.get("data", [])
-                        battery = new_record.get("Batt")  # Extract battery level
+                        tracker_data = await get_combined_tracker_data(tracker_id)
+                        if tracker_data:
+                            # Iterate over all records in the data array
+                            for record in tracker_data["data"]:
+                                geolocation = {
+                                    "Lat": record.get("latitude"),
+                                    "Lng": record.get("longitude"),
+                                } if record else {}
 
-                        # Broadcast each record in the data array
-                        for record in data_array:
-                            geolocation = {
-                                "Lat": record.get("Lat"),
-                                "Lng": record.get("Lng"),
-                            } if record else {}
-
-                            # Include battery and timestamp in the broadcast
-                            print(f"Broadcasting record for tracker ID {tracker_id}: {record}")  # Log the broadcast
-                            await manager.broadcast(json_util.dumps({
-                                "operationType": "insert",
-                                "tracker_id": tracker_id,
-                                "new_record": {
-                                    **record,
-                                    "battery": battery,  # Include battery level
-                                    "timestamp": record.get("DT"),  # Use the record's timestamp
-                                },
-                                "geolocation": geolocation
-                            }))
+                                print(f"Broadcasting record for tracker ID {tracker_id}: {record}")  # Log the broadcast
+                                await manager.broadcast(json_util.dumps({
+                                    "operationType": "insert",
+                                    "tracker_id": tracker_id,
+                                    "new_record": record,
+                                    "geolocation": geolocation
+                                }))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         print("WebSocket client disconnected.")
