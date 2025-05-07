@@ -51,7 +51,7 @@ async def get_combined_tracker_data(tracker_id: str):
             "model_number": tracker["model_number"],
             "batteryLevel": shipment_documents[-1].get("Batt", "N/A"),  # Use the latest document for battery level
             "lastConnected": shipment_documents[-1].get("DT", "N/A"),  # Use the latest document for last connected time
-            "location": f"{shipment_documents[-1].get('Lat', 'N/A')}, {shipment_documents[-1].get('Lng', 'N/A')}",  # Use the latest document for location
+            "location": f"{shipment_documents[-1].get('data', [{}])[-1].get('Lat', 'N/A')}, {shipment_documents[-1].get('data', [{}])[-1].get('Lng', 'N/A')}",  # Use the latest document for location
             "data": historical_data  # Add processed nested data
         }
         print(f"Combined data for tracker ID {tracker_id}: {combined_data}")
