@@ -10,3 +10,4 @@ db = client[DB_NAME]
 
 registered_trackers_collection = db["registered_trackers"]
 shipment_data_collection = db["Shipment_Data"]
+shipment_meta_collection = db["Shipment_Meta"]
