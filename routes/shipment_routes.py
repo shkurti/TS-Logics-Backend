@@ -13,10 +13,6 @@ async def insert_shipment_meta(data: dict):
         for leg in data.get("legs", []):
             print(f"Leg shipDate: {leg.get('shipDate')}, arrivalDate: {leg.get('arrivalDate')}")
 
-        # Log the formatted legs data
-        formattedLegs = [{"shipDate": leg.get("shipDate"), "arrivalDate": leg.get("arrivalDate")} for leg in data.get("legs", [])]
-        print(f"Formatted legs data: {formattedLegs}")
-
         # Insert the shipment data into the Shipment_Meta collection
         result = await shipment_meta_collection.insert_one(data)
         return {"message": "Shipment data inserted successfully", "id": str(result.inserted_id)}
