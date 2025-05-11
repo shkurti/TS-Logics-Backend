@@ -6,6 +6,9 @@ router = APIRouter()
 @router.post("/shipment_meta")
 async def insert_shipment_meta(data: dict):
     try:
+        # Log the incoming data for debugging
+        print(f"Received shipment data: {data}")  # Debugging log
+
         # Insert the shipment data into the Shipment_Meta collection
         result = await shipment_meta_collection.insert_one(data)
         return {"message": "Shipment data inserted successfully", "id": str(result.inserted_id)}
