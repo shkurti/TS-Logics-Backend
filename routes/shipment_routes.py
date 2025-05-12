@@ -6,21 +6,19 @@ router = APIRouter()
 @router.post("/shipment_meta")
 async def insert_shipment_meta(request: Request):
     try:
-        # Log the request method and URL
-        print(f"Request received: {request.method} {request.url}")  # Debugging log
-
-        # Parse the incoming JSON data
         data = await request.json()
         print(f"Received shipment data: {data}")  # Debugging log
 
-        # Validate and process each leg
-        for leg in data.get("legs", []):
-            if not all(key in leg for key in ["shipFromAddress", "shipDate", "mode", "carrier", "stopAddress", "arrivalDate", "departureDate"]):
-                print(f"Validation failed for leg: {leg}")  # Debugging log
-                raise HTTPException(status_code=400, detail="Missing required fields in one or more legs.")
-            print(f"Processing leg: {leg}")  # Debugging log
+        for i, leg in enumerate(data.get("legs", [])):
+            required_fields = ["shipDate", "mode", "carrier", "arrivalDate", "departureDate"]
+            if i == 0:
+                required_fields.append("shipFromAddress")  # First leg requires Ship From Address
+            required_fields.append("stopAddress")  # All legs require Stop Address (or Ship To Address for the last leg)
 
-        # Insert the shipment data into the Shipment_Meta collection
+            if not all(key in leg and leg[key] for key in required_fields):
+                print(f"Validation failed for leg {i + 1}: {leg}")  # Debugging log
+                raise HTTPException(status_code=400, detail="Missing required fields in one or more legs.")
+
         result = await shipment_meta_collection.insert_one(data)
         print(f"Inserted shipment data with ID: {result.inserted_id}")  # Debugging log
         return {"message": "Shipment data inserted successfully", "id": str(result.inserted_id)}
