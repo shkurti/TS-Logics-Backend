@@ -1,12 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from database import shipment_meta_collection
 
 router = APIRouter()
 
 @router.post("/shipment_meta")
-async def insert_shipment_meta(data: dict):
+async def insert_shipment_meta(request: Request):
     try:
-        # Log the incoming data for debugging
+        # Log the request method and URL
+        print(f"Request received: {request.method} {request.url}")  # Debugging log
+
+        # Parse the incoming JSON data
+        data = await request.json()
         print(f"Received shipment data: {data}")  # Debugging log
 
         # Validate and process each leg
