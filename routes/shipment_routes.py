@@ -9,12 +9,15 @@ async def insert_shipment_meta(data: dict):
         # Log the incoming data for debugging
         print(f"Received shipment data: {data}")  # Debugging log
 
-        # Check if shipDate and arrivalDate are properly formatted
+        # Validate and process each leg
         for leg in data.get("legs", []):
-            print(f"Leg shipDate: {leg.get('shipDate')}, arrivalDate: {leg.get('arrivalDate')}")
+            if not all(key in leg for key in ["shipFromAddress", "shipDate", "mode", "carrier", "stopAddress", "arrivalDate", "departureDate"]):
+                raise HTTPException(status_code=400, detail="Missing required fields in one or more legs.")
+            print(f"Processing leg: {leg}")  # Debugging log
 
         # Insert the shipment data into the Shipment_Meta collection
         result = await shipment_meta_collection.insert_one(data)
+        print(f"Inserted shipment data with ID: {result.inserted_id}")  # Debugging log
         return {"message": "Shipment data inserted successfully", "id": str(result.inserted_id)}
     except Exception as e:
         print(f"Error inserting shipment data: {e}")
