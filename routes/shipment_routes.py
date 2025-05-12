@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from database import shipment_meta_collection
+from datetime import datetime
 
 router = APIRouter()
 
@@ -18,6 +19,13 @@ async def insert_shipment_meta(request: Request):
             if not all(key in leg and leg[key] for key in required_fields):
                 print(f"Validation failed for leg {i + 1}: {leg}")  # Debugging log
                 raise HTTPException(status_code=400, detail="Missing required fields in one or more legs.")
+
+            # Validate datetime fields
+            for field in ["shipDate", "arrivalDate", "departureDate"]:
+                try:
+                    datetime.fromisoformat(leg[field])  # Validate ISO 8601 format
+                except ValueError:
+                    raise HTTPException(status_code=400, detail=f"Invalid datetime format for {field} in leg {i + 1}.")
 
         result = await shipment_meta_collection.insert_one(data)
         print(f"Inserted shipment data with ID: {result.inserted_id}")  # Debugging log
