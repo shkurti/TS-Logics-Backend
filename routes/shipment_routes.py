@@ -12,6 +12,7 @@ async def insert_shipment_meta(data: dict):
         # Validate and process each leg
         for leg in data.get("legs", []):
             if not all(key in leg for key in ["shipFromAddress", "shipDate", "mode", "carrier", "stopAddress", "arrivalDate", "departureDate"]):
+                print(f"Validation failed for leg: {leg}")  # Debugging log
                 raise HTTPException(status_code=400, detail="Missing required fields in one or more legs.")
             print(f"Processing leg: {leg}")  # Debugging log
 
