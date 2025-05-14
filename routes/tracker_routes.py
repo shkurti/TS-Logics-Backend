@@ -73,3 +73,19 @@ async def delete_tracker(tracker_id: str):
     except Exception as e:
         print(f"Error deleting tracker with ID {tracker_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.get("/registered_trackers")
+async def get_registered_trackers():
+    try:
+        trackers = []
+        async for tracker in registered_trackers_collection.find():
+            trackers.append({
+                "tracker_id": tracker.get("tracker_id"),
+                "tracker_name": tracker.get("tracker_name"),
+                "device_type": tracker.get("device_type"),
+                "model_number": tracker.get("model_number"),
+            })
+        return trackers
+    except Exception as e:
+        print(f"Error fetching registered trackers: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch registered trackers.")

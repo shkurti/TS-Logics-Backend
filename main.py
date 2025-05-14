@@ -5,6 +5,7 @@ from websocket_manager import manager
 from database import shipment_data_collection
 from routes.tracker_routes import router
 from routes.shipment_routes import router as shipment_router
+from routes.tracker_routes import router as tracker_router
 from services.tracker_service import get_combined_tracker_data
 
 app = FastAPI()
@@ -19,6 +20,7 @@ app.add_middleware(
 
 app.include_router(router)
 app.include_router(shipment_router)
+app.include_router(tracker_router)  # Add this line to include tracker routes
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
