@@ -10,6 +10,10 @@ async def insert_shipment_meta(request: Request):
         data = await request.json()
         print(f"Received shipment data: {data}")  # Debugging log
 
+        # Validate trackerId
+        if "trackerId" not in data or not data["trackerId"]:
+            raise HTTPException(status_code=400, detail="Missing trackerId.")
+
         for i, leg in enumerate(data.get("legs", [])):
             required_fields = ["shipDate", "mode", "carrier", "arrivalDate", "departureDate"]
             if i == 0:
