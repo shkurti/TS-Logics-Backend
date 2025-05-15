@@ -37,3 +37,14 @@ async def insert_shipment_meta(request: Request):
     except Exception as e:
         print(f"Error inserting shipment data: {e}")
         raise HTTPException(status_code=500, detail="Failed to insert shipment data")
+
+@router.get("/shipment_meta")
+async def get_all_shipments():
+    try:
+        shipments = []
+        async for shipment in shipment_meta_collection.find():
+            shipments.append(shipment)
+        return shipments
+    except Exception as e:
+        print(f"Error fetching shipments: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch shipments.")
