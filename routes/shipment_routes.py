@@ -44,6 +44,7 @@ async def get_all_shipments():
         shipments = []
         async for shipment in shipment_meta_collection.find():
             shipment["_id"] = str(shipment["_id"])  # Convert ObjectId to string
+            shipment["legs"] = shipment.get("legs", [])  # Ensure legs is always present
             shipments.append(shipment)
         return shipments
     except Exception as e:
