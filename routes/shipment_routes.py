@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Query
-from database import shipment_meta_collection, shipment_data_collection
+from database import shipment_meta, shipment_data
 from datetime import datetime
 from dateutil import parser as date_parser
 
@@ -32,7 +32,7 @@ async def insert_shipment_meta(request: Request):
                 except ValueError:
                     raise HTTPException(status_code=400, detail=f"Invalid datetime format for {field} in leg {i + 1}.")
 
-        result = await shipment_meta_collection.insert_one(data)
+        result = await shipment_meta.insert_one(data)
         print(f"Inserted shipment data with ID: {result.inserted_id}")  # Debugging log
         return {"message": "Shipment data inserted successfully", "id": str(result.inserted_id)}
     except Exception as e:
@@ -43,7 +43,7 @@ async def insert_shipment_meta(request: Request):
 async def get_all_shipments():
     try:
         shipments = []
-        async for shipment in shipment_meta_collection.find():
+        async for shipment in shipment_meta.find():
             shipment["_id"] = str(shipment["_id"])  # Convert ObjectId to string
             shipment["legs"] = shipment.get("legs", [])  # Ensure legs is always present
             shipments.append(shipment)
@@ -70,7 +70,7 @@ async def get_shipment_route_data(
         end_dt = date_parser.parse(end)
 
         shipment_records = []
-        async for doc in shipment_data_collection.find({"trackerID": tracker_id_int}):
+        async for doc in shipment_data.find({"trackerID": tracker_id_int}):
             for record in doc.get("data", []):
                 dt_str = record.get("DT")
                 if not dt_str:
