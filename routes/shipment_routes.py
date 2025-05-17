@@ -96,3 +96,16 @@ async def get_shipment_route_data(
     except Exception as e:
         print(f"Error in get_shipment_route_data: {e}")
         return []
+
+@router.delete("/shipment_meta/{shipment_id}")
+async def delete_shipment_meta(shipment_id: str):
+    from bson import ObjectId
+    try:
+        result = await shipment_meta_collection.delete_one({"_id": ObjectId(shipment_id)})
+        if result.deleted_count == 1:
+            return {"message": "Shipment deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Shipment not found")
+    except Exception as e:
+        print(f"Error deleting shipment: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete shipment")
