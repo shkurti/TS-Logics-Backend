@@ -30,22 +30,21 @@ async def websocket_endpoint(websocket: WebSocket):
                 if change["operationType"] == "insert":
                     tracker_id = change["fullDocument"].get("trackerID")
                     if tracker_id:
-                        tracker_data = await get_combined_tracker_data(tracker_id)
-                        if tracker_data:
-                            # Iterate over all records in the data array
-                            for record in tracker_data["data"]:
-                                geolocation = {
-                                    "Lat": record.get("latitude"),
-                                    "Lng": record.get("longitude"),
-                                } if record else {}
+                        # Only broadcast the new record(s) from the inserted document
+                        new_data = change["fullDocument"].get("data", [])
+                        for record in new_data:
+                            geolocation = {
+                                "Lat": record.get("Lat"),
+                                "Lng": record.get("Lng"),
+                            } if record else {}
 
-                                print(f"Broadcasting record for tracker ID {tracker_id}: {record}")  # Log the broadcast
-                                await manager.broadcast(json_util.dumps({
-                                    "operationType": "insert",
-                                    "tracker_id": tracker_id,
-                                    "new_record": record,
-                                    "geolocation": geolocation
-                                }))
+                            print(f"Broadcasting ONLY new record for tracker ID {tracker_id}: {record}")  # Log the broadcast
+                            await manager.broadcast(json_util.dumps({
+                                "operationType": "insert",
+                                "tracker_id": tracker_id,
+                                "new_record": record,
+                                "geolocation": geolocation
+                            }))
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         print("WebSocket client disconnected.")
