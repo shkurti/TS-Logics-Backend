@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Query
 from database import shipment_meta_collection, shipment_data_collection
 from datetime import datetime
 from dateutil import parser as date_parser
+from websocket_manager import manager
 
 router = APIRouter()
 
@@ -109,3 +110,16 @@ async def delete_shipment_meta(shipment_id: str):
     except Exception as e:
         print(f"Error deleting shipment: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete shipment")
+
+@router.get("/shipment_realtime_data/{tracker_id}")
+async def get_shipment_realtime_data(tracker_id: str):
+    """Get historical real-time data for a specific shipment"""
+    try:
+        tracker_id_int = int(tracker_id)
+        realtime_data = await manager.get_shipment_realtime_data(tracker_id_int)
+        return {"tracker_id": tracker_id, "realtime_data": realtime_data}
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid tracker ID")
+    except Exception as e:
+        print(f"Error fetching real-time data for tracker {tracker_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch real-time data")
