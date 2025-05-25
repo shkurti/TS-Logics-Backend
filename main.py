@@ -33,9 +33,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Only broadcast the new record(s) from the inserted document
                         new_data = change["fullDocument"].get("data", [])
                         for record in new_data:
-                            # Store real-time data for persistence
-                            await manager.store_realtime_data(tracker_id, record)
-                            
                             geolocation = {
                                 "Lat": record.get("Lat"),
                                 "Lng": record.get("Lng"),
