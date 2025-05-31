@@ -6,9 +6,6 @@ from database import shipment_data_collection
 from routes.tracker_routes import router
 from routes.shipment_routes import router as shipment_router
 from services.tracker_service import get_combined_tracker_data
-import pytz
-from datetime import datetime
-from dateutil import parser as date_parser
 
 app = FastAPI()
 
@@ -22,27 +19,6 @@ app.add_middleware(
 
 app.include_router(router)
 app.include_router(shipment_router)
-
-def convert_utc_to_local_for_websocket(utc_time_str: str, local_timezone: str = "America/New_York") -> dict:
-    """
-    Convert UTC timestamp to local time and return both for WebSocket broadcast
-    """
-    try:
-        utc_dt = date_parser.parse(utc_time_str)
-        if utc_dt.tzinfo is None:
-            utc_dt = pytz.utc.localize(utc_dt)
-        
-        local_tz = pytz.timezone(local_timezone)
-        local_dt = utc_dt.astimezone(local_tz)
-        
-        return {
-            "timestamp_utc": utc_time_str,
-            "timestamp_local": local_dt.strftime("%Y-%m-%d %H:%M:%S"),
-            "timezone": local_timezone
-        }
-    except Exception as e:
-        print(f"Error converting timezone for WebSocket: {e}")
-        return {"timestamp_utc": utc_time_str, "timestamp_local": utc_time_str, "timezone": "UTC"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -62,23 +38,11 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "Lng": record.get("Lng"),
                             } if record else {}
 
-                            # Convert timestamp to include both UTC and local time
-                            timestamp_info = convert_utc_to_local_for_websocket(
-                                record.get("DT", ""), 
-                                "America/New_York"  # Default timezone, could be made configurable
-                            )
-                            
-                            # Add timezone info to the record
-                            enhanced_record = {
-                                **record,
-                                **timestamp_info
-                            }
-
-                            print(f"Broadcasting new record with timezone info for tracker ID {tracker_id}")  # Log the broadcast
+                            print(f"Broadcasting ONLY new record for tracker ID {tracker_id}: {record}")  # Log the broadcast
                             await manager.broadcast(json_util.dumps({
                                 "operationType": "insert",
                                 "tracker_id": tracker_id,
-                                "new_record": enhanced_record,
+                                "new_record": record,
                                 "geolocation": geolocation
                             }))
     except WebSocketDisconnect:
