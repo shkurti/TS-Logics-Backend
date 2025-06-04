@@ -146,7 +146,7 @@ async def get_shipment_route_data(
                             "temperature": record.get("Temp"),
                             "humidity": record.get("Hum"),
                             "speed": record.get("Speed"),
-                            "battery": doc.get("Batt"),
+                            "battery": record.get("Batt"),  # Fixed: Get battery from individual record, not document level
                         })
                 except Exception as e:
                     print(f"Error processing timestamp {dt_str}: {e}")

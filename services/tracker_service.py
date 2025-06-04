@@ -62,18 +62,15 @@ async def get_combined_tracker_data(tracker_id: str, timezone: str = "America/Ne
                         "temperature": record.get("Temp", "N/A"),
                         "humidity": record.get("Hum", "N/A"),
                         "speed": record.get("Speed", "N/A"),
-                        "battery": record.get("Batt", "N/A"),
+                        "battery": record.get("Batt", "N/A"),  # Fixed: Get battery from individual record
                     })
 
         # Combine data
         latest_shipment = shipment_documents[-1] if shipment_documents else {}
         latest_data = latest_shipment.get("data", [{}])[-1] if latest_shipment.get("data") else {}
 
-        # Ensure the battery level is extracted correctly
-        battery_level = latest_shipment.get("Batt", None)
-        if battery_level is None:
-            # Check if the battery level is present in the latest data
-            battery_level = latest_data.get("Batt", "N/A")
+        # Get battery level from the latest data record, not document level
+        battery_level = latest_data.get("Batt", "N/A")
 
         # Convert last connected time to local timezone
         last_connected_utc = latest_data.get("DT", "N/A")
@@ -84,7 +81,7 @@ async def get_combined_tracker_data(tracker_id: str, timezone: str = "America/Ne
             "tracker_name": tracker["tracker_name"],
             "device_type": tracker["device_type"],
             "model_number": tracker["model_number"],
-            "batteryLevel": battery_level,  # Extract battery level from the latest shipment or data
+            "batteryLevel": battery_level,  # Fixed: Get from latest data record
             "lastConnected": last_connected_local,  # Local time
             "lastConnected_utc": last_connected_utc,  # UTC for reference
             "location": f"{latest_data.get('Lat', 'N/A')}, {latest_data.get('Lng', 'N/A')}",  # Extract location from the latest data
