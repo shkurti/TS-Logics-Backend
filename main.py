@@ -9,6 +9,7 @@ from services.tracker_service import get_combined_tracker_data
 import pytz
 from datetime import datetime
 from dateutil import parser as date_parser
+import os
 
 app = FastAPI()
 
@@ -46,6 +47,7 @@ def convert_utc_to_local_for_websocket(utc_time_str: str, local_timezone: str = 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    print(f"WebSocket handler started in process {os.getpid()}")
     await manager.connect(websocket)
     try:
         async with shipment_data_collection.watch() as stream:
