@@ -77,7 +77,6 @@ async def websocket_endpoint(websocket: WebSocket):
                             }
 
                             print(f"Broadcasting new record with timezone info for tracker ID {tracker_id}")  # Log the broadcast
-                            print(f"Broadcasting message to {len(manager.active_connections)} WebSocket clients...")
                             await manager.broadcast(json_util.dumps({
                                 "operationType": "insert",
                                 "tracker_id": tracker_id,
@@ -94,4 +93,5 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.on_event("startup")
 async def startup_event():
+    print("WebSocket and MongoDB Change Stream are running.")
     print("WebSocket and MongoDB Change Stream are running.")
